@@ -1,0 +1,320 @@
+﻿@model Telcel.R9.Estructura.Negocio.Empleado
+
+@{
+    ViewBag.Title = "GetAll";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<head>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+    <script type="text/javascript">
+
+        function show(idDiv) {
+            var div = document.getElementById(idDiv);
+            var search = document.getElementById("formSearch");
+            if (div.style.display === "none") {
+                div.style.display = "block";
+                search.style.display = "none";
+            }
+            else {
+                div.style.display = "none";
+                Limpiar();
+                search.style.display = "block";
+            }
+        }
+
+        function Add() {
+            var nombre = $('#txtNombreAdd').val();
+            var puesto = $('#ddlPuestoAdd').val();
+            var departamento = $('#ddlDepartamentoAdd').val();
+            if (nombre == '' || puesto == 0 || departamento == 0) {
+                alert('Error, verifique los datos, no pueden haber campos vacíos o sin seleccionar.');
+            }
+            else {
+                var empleado = {
+                EmpleadoID : 0,
+                Nombre: nombre,
+                Puesto: {
+                    PuestoID: puesto,
+                },
+                Departamento: {
+                    DepartamentoID: departamento
+                }
+            }
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Add","Empleado")',
+                dataType: 'json',
+                data: { empleado },
+                success: function () {
+                    alert('Se registró el empleado correctamente');
+                    Limpiar();
+                    location.reload();
+                },
+                error: function (ex) {
+                    alert('Error: ' + ex);
+                }
+            });
+            }
+        }
+
+        function Delete(EmpleadoID) {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Delete", "Empleado")',
+                dataType: 'json',
+                data: { EmpleadoID },
+                success: function () {
+                    alert('Se eliminó correctamente el registro.');
+                    location.reload();
+                },
+                error: function (ex) {
+                    alert('Error: ' + ex);
+                }
+            });
+        }
+
+        function Limpiar() {
+            $('#txtNombreAdd').val('');
+            $('#ddlPuestoAdd').val('');
+            $('#ddlDepartamentoAdd').val('');
+        }
+
+        function GetById(EmpleadoID) {
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                url: '@Url.Action("GetById", "Empleado")',
+                data: { EmpleadoID },                
+                success: function (result) {
+                    $('#txtEmpleadoIDAdd').val(result.Object.EmpleadoID);
+                    $('#txtNombreAdd').val(result.Object.Nombre);
+                    $('#ddlPuestoAdd').val(result.Object.Puesto.PuestoID);
+                    $('#ddlDepartamentoAdd').val(result.Object.Departamento.DepartamentoID);
+
+                    show('formAdd');
+
+                },
+                error: function (ex) {
+                    alert('Error al obtener los datos:' + ex);
+                }
+            });
+        }
+
+        function Update() {
+            var Empleado = {
+                EmpleadoID: $('#txtEmpleadoIDAdd').val(),
+                Nombre: $('#txtNombreAdd').val(),
+                Puesto: {
+                    PuestoID: $('#ddlPuestoAdd').val()
+                },
+                Departamento: {
+                    DepartamentoID: $('#ddlDepartamentoAdd').val(),
+                }
+            }                
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                url: '@Url.Action("Update","Empleado")',
+                data: { Empleado },
+                success: function () {
+                    alert('Registro actualizado correctamente.');                    
+                    location.reload();
+                    Limpiar();
+                },
+                error: function (ex) {
+                    alert('Error al editar el registro: ' + ex);
+                }
+            });
+        }
+
+        function Enviar(EmpleadoID) {
+            if (EmpleadoID == 0) {
+                Add();
+            }
+            else {
+                Update();
+            }
+        }
+
+        function IrArriba() {
+            $('body, html').animate({
+                scrollTop: 0
+            }, 300);
+        }
+        
+        
+
+    </script>
+</head>
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h2><i class="fa-solid fa-users fa-flip" style="--fa-animation-duration: 6s; color:royalblue;"></i> 
+                Empleados</h2>
+        </div>
+        <div class="col" style="text-align:end; vertical-align:central">
+            <a class="btn btn-success" onclick="show('formAdd')">Agregar</a>
+        </div>
+        <p>Presione el botón de agregar para registrar un nuevo empleado</p>
+        <hr />
+    </div>
+
+    <div class="row">
+        <div style="display:none" id="formAdd">
+            <h3>Formulario</h3>
+
+            <div>
+                <div>
+                    @Html.TextBoxFor(model => model.EmpleadoID,
+                    new { @class = "visually-hidden", @id = "txtEmpleadoIDAdd", @placeholder = "Nombre", @style = "width:100%" })
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    @Html.LabelFor(model => model.Nombre)
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fa-regular fa-address-card"></i></span>
+                        @Html.TextBoxFor(model => model.Nombre,
+                        new { @class = "form-control", @id = "txtNombreAdd", @placeholder = "Nombre", @style="width:100%" })
+                    </div>
+                </div>
+            </div>
+
+            <br />
+                
+            <div class="row">
+                <div class="col-md-6">
+                    @Html.LabelFor(model => model.Departamento)
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fa-solid fa-building"></i></span>
+                        @Html.DropDownListFor(model => model.Departamento.DepartamentoID,
+                            new SelectList(Model.Departamento.Departamentos, "DepartamentoID", "Descripcion"),
+                            "Selecciona un departamento", new { @class = "form-control", @id = "ddlDepartamentoAdd" })
+                    </div>
+                </div>
+            </div>
+
+            <br />
+
+            <div class="row">
+                <div class="col-md-6">
+                    @Html.LabelFor(model => model.Puesto)
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fa-solid fa-user-tie"></i></span>
+                        @Html.DropDownListFor(model => model.Puesto.PuestoID,
+                        new SelectList(Model.Puesto.Puestos, "PuestoID", "Descripcion"),
+                        "Selecciona un puesto", new { @class = "form-control", @id = "ddlPuestoAdd" })
+                    </div>
+                </div>
+            </div>
+                
+            <br />
+            <div class="row cols-2">
+
+                <div class="col">
+                    <input type="submit" value="Guardar" class="btn btn-success" onclick="Enviar($('#txtEmpleadoIDAdd').val())"/>
+                </div>
+                <div class="col">
+                    <button class="btn btn-danger" onclick="show('formAdd')">Cancelar</button>
+                </div>
+            </div>
+            <br />
+     
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12" id="formSearch">
+            @using (Html.BeginForm("GetAll", "Empleado", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                <div class="row">
+
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-regular fa-address-card"></i></span>
+                            @Html.TextBoxFor(model => model.Nombre,
+                            new { @class = "form-control", @id = "txtNombre", @placeholder = "Nombre" })
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-user-tie"></i></span>
+                            @Html.DropDownListFor(model => model.Puesto.PuestoID,
+                             new SelectList(Model.Puesto.Puestos, "PuestoID", "Descripcion"),
+                             "Selecciona un puesto", new { @class = "form-control", @id = "ddlPuesto" })
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-building"></i></span>
+                            @Html.DropDownListFor(model => model.Departamento.DepartamentoID,
+                            new SelectList(Model.Departamento.Departamentos, "DepartamentoID", "Descripcion"),
+                            "Selecciona un departamento", new { @class = "form-control", @id = "ddlDepartamento" })
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row col-sm-1">
+                    <input type="submit" value="Buscar" class="btn btn-info" />
+                </div>
+                <br />
+            }
+        </div>
+    </div>
+        
+    <hr />
+
+    <div class="row" style="text-align:center">
+        <div class="col-1 col-md-12">
+            @if (Model.Empleados != null)
+            {
+                <table class="table table-bordered" id="tbEmpleado">
+                    <thead>
+                        <tr>
+                            <td class="text-center" style="font-weight:bold">Editar</td>
+                            <td class="visually-hidden">EmpleadoID</td>
+                            <td class="text-center" style="font-weight:bold">Nombre</td>
+                            <td class="visually-hidden">PuestoID</td>
+                            <td class="text-center" style="font-weight:bold">Puesto</td>
+                            <td class="visually-hidden">DepartamentoID</td>
+                            <td class="text-center" style="font-weight:bold">Departamento</td>
+                            <td class="text-center" style="font-weight:bold">Eliminar</td>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (Telcel.R9.Estructura.Negocio.Empleado empleado in Model.Empleados)
+                        {
+                            <tr>
+                                <td class="text-center">
+                                    <a class="btn btn-warning" id="Editar"
+                                       onclick="GetById(@empleado.EmpleadoID), IrArriba()"><i class="fa-regular fa-pen-to-square"></i></a>
+                                </td>
+
+                                <td class="visually-hidden">@empleado.EmpleadoID</td>
+                                <td>@empleado.Nombre</td>
+                                <td class="visually-hidden">@empleado.Puesto.PuestoID</td>
+                                <td>@empleado.Puesto.Descripcion</td>
+                                <td class="visually-hidden">@empleado.Departamento.DepartamentoID</td>
+                                <td>@empleado.Departamento.Descripcion</td>
+
+                                <td class="text-center">
+                                    <a class="btn btn-danger"
+                                       onclick="Delete(@empleado.EmpleadoID)"><i class="fa-solid fa-trash"></i></a>
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            }
+        </div>
+    </div>
+</div>

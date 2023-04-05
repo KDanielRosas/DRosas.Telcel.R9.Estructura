@@ -1,0 +1,64 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<head>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.1/js/dataTables.material.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
+
+    <script type="text/javascript">
+
+        function validateFileTxt() {
+            var allowedExtension = ['txt'];
+            var fileExtension = document.getElementById('archivoTxt').value.split('.').pop().toLowerCase();
+            var isValidFile = false;
+            for (var index in allowedExtension) {
+                if (fileExtension === allowedExtension[index]) {
+                    isValidFile = true;
+                    break;
+                }
+            }
+            if (!isValidFile) {
+                alert('La extensión permitida es: *.' + allowedExtension.join(', *.'));
+                document.getElementById('archivoTxt').value = ""
+            }
+            return isValidFile;
+        }
+
+        function show(idDiv) {
+            var div = document.getElementById(idDiv)
+            if (div.style.display === "none") {
+                div.style.display = "block";
+            } else {
+                div.style.display = "none";
+            }
+        }
+
+    </script>
+</head>
+
+<h2>Carga Masiva</h2>
+
+<div class="container">
+    <div class="col">
+        <button class="btn btn-info w-100" id="btnTxt" name="btnTxt" onclick="show('uploadTxt')"><h2>Txt</h2></button>
+        @using (Html.BeginForm("Index", "CargaMasiva", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            <div style="display:none" id="uploadTxt">
+                <input class="form-control" type="file" name="archivoTxt" id="archivoTxt" />
+                <div style="text-align:center">
+                    <br />
+                    <input type="submit" value="Procesar" class="btn btn-info" />
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+
+
